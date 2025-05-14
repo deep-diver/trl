@@ -1162,6 +1162,7 @@ class GRPOTrainer(Trainer):
                     # of generations
                     keys = [key for key in inputs[0] if key not in ["prompt", "completion", "completion_ids"]]
                     reward_kwargs = {key: [example[key] for example in inputs] for key in keys}
+                    reward_kwargs["epoch"] = self.state.epoch
                     output_reward_func = reward_func(
                         prompts=prompts, completions=completions, completion_ids=completion_ids_list, **reward_kwargs
                     )
@@ -1174,6 +1175,7 @@ class GRPOTrainer(Trainer):
         if torch.isnan(rewards_per_func).all(dim=1).any():
             nan_row_idx = torch.isnan(rewards_per_func).all(dim=1).nonzero(as_tuple=True)[0][0]
             row_reward_kwargs = {key: value[nan_row_idx] for key, value in reward_kwargs.items()}
+            row_reward_kwargs["epoch"] = self.state.epoch
             row_reward_kwargs["prompt"] = prompts[nan_row_idx]
             row_reward_kwargs["completion"] = completions[nan_row_idx]
             warnings.warn(
